@@ -67,6 +67,7 @@ def discriminator(image, drop_out, reuse=False):
 
         return output
 
+# save image
 def save_f_image(index, z_sample):
     fig = plt.figure(figsize=(4, 4))
     gs = gridspec.GridSpec(4, 4)
@@ -87,14 +88,12 @@ x = tf.placeholder(tf.float32, shape=(None, 784))
 z = tf.placeholder(tf.float32, shape=(None, 100))
 drop_out = tf.placeholder(tf.float32)
 
-
 #Generate fake image and discriminate real and fake
 f_sample = generator(z)
 D_real = discriminator(x, drop_out)
 D_fake = discriminator(f_sample,drop_out,reuse=True)
 
 #Loss for generator and discriminator
-
 D_loss = - tf.reduce_mean(tf.log(D_real) + tf.log(1. -D_fake))
 G_loss = - tf.reduce_mean(tf.log(D_fake))
 """
@@ -117,21 +116,24 @@ G_vars = [var for var in t_vars if 'G_' in var.name]
 D_train =tf.train.AdamOptimizer(l_rate).minimize(D_loss, var_list = D_vars)
 G_train = tf.train.AdamOptimizer(l_rate).minimize(G_loss, var_list = G_vars)
 
+#Setup tensorflow session
 gpu_options = tf.GPUOptions(allow_growth=True)
 sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 
 init = tf.global_variables_initializer()
 sess.run(init)
-
 saver = tf.train.Saver()
+
+#nomallize
 train_set = (mnist.train.images-0.5)/0.5
 
+#Default noise
 test_z = np.random.normal(0, 1, (16, 100))
 
 while epoch <= train_epoch:
     G_losses =[]
     D_losses =[]
-    #sess.graph.finalize()
+    #sess.graph.finalize(), 
     if epoch % 1 == 0:
         fake_image = sess.run(f_sample, {z: test_z, drop_out: 0.0})
         save_f_image(index, fake_image)

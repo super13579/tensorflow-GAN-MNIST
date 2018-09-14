@@ -7,6 +7,7 @@ import os
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/")
 
+#Create Generator
 def generator(z, reuse=False):
     with tf.variable_scope('generator', reuse=reuse):
         # initializers
@@ -35,7 +36,7 @@ def generator(z, reuse=False):
 
     return f_image
 
-# D(x)
+# Create discriminator
 def discriminator(image, drop_out, reuse=False):
     with tf.variable_scope('discriminator', reuse=reuse):
         # initializers
@@ -133,12 +134,15 @@ test_z = np.random.normal(0, 1, (16, 100))
 while epoch <= train_epoch:
     G_losses =[]
     D_losses =[]
-    #sess.graph.finalize(), 
+    #sess.graph.finalize(), for prevent memory explode
+    
+    #Save all fake image
     if epoch % 1 == 0:
         fake_image = sess.run(f_sample, {z: test_z, drop_out: 0.0})
         save_f_image(index, fake_image)
         index +=1
-
+        
+    #Start training
     for i in range(0, train_set.shape[0],batch_size):
         sess.graph.finalize()
         input_x = train_set[i:i + batch_size]
@@ -157,10 +161,9 @@ while epoch <= train_epoch:
         #print("epoch of {}, batch {} ~ {}, D_loss: {}, G_loss: {} ".format(epoch+1,i,i+batch_size,loss_d,loss_g))
     print("@epoch of {}, D_loss: {}, G_loss: {}".format(epoch+1,np.mean(D_losses),np.mean(G_losses)))
 
-
-
     epoch += 1
 
+#Save model
 save_path = saver.save(sess, "/tmp/GAN/GAN_MNIST_200.ckpt")
 print("Model saved in path: %s" % save_path)
 
